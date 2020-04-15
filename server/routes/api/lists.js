@@ -39,20 +39,21 @@ router.post("/", async (req, res) => {
   }
 });
 
-// @route   POST api/lists/:id/:i
-// @desc    Update a task in a list
+// @route   POST api/lists/:id/
+// @desc    Add task to list
 // @access  Public
-router.post("/:id/:i", async (req, res) => {
+router.post("/:id/add", async (req, res) => {
+  // TODO test if this works
   try {
-    const task = req.body;
-    const list = await List.findOneAndUpdate(
+    const task = req.body.task;
+    const list = await List.updateOne(
       { _id: req.params.id },
       {
-        $set: {
-          [`tasks.${req.params.i}`]: task,
+        $push: {
+          tasks: task,
         },
       }
-    ); 
+    );
     if (!list) return res.status(404).json({ message: "List not found" });
     res.json(list);
   } catch (error) {
@@ -61,11 +62,51 @@ router.post("/:id/:i", async (req, res) => {
   }
 });
 
-// TODO make the routes private
-// TODO make the routes private
-// TODO make the routes private
-// TODO make the routes private
-// TODO make the routes private
-// TODO make the routes private
-// TODO make the routes private
+// @route   POST api/lists/:id/
+// @desc    Rename list
+// @access  Public
+router.post("/:id/rename", async (req, res) => {
+  // TODO test if this works
+  try {
+    const name = req.body.name;
+    const list = await List.updateOne(
+      { _id: req.params.id },
+      {
+        $set: {
+          name: name,
+        },
+      }
+    );
+    if (!list) return res.status(404).json({ message: "List not found" });
+    res.json(list);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+});
+
+// @route   POST api/lists/:id/:i
+// @desc    Update a task in a list
+// @access  Public
+router.post("/:id/:i", async (req, res) => {
+  try {
+    const task = req.body.task;
+    const list = await List.updateOne(
+      { _id: req.params.id },
+      {
+        $set: {
+          [`tasks.${req.params.i}`]: task,
+        },
+      }
+    );
+    if (!list) return res.status(404).json({ message: "List not found" });
+    res.json(list);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+});
+
+// TODO make the routes private !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 module.exports = router;

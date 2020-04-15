@@ -3,16 +3,18 @@ body {
   background: #abc;
 }
 
+/* TODO set viewport minimum width... */
+
 .border-2 {
   border-width: 2px !important;
 }
 
-.flex-104 {
-  flex-basis: 104px;
+.flex-72 {
+  flex-basis: 72px;
 }
 
-.flex-232 {
-  flex-basis: 232px;
+.flex-192 {
+  flex-basis: 192px;
 }
 
 .rounded-max {
@@ -43,4 +45,31 @@ body {
 
 .done-btn-yes:hover:after {
   content: "NO?";
+}
+
+.small-bold {
+  font-size: 60%;
+  font-weight: 700;
+}
+
+.h-100vh {
+  height: 100vh;
+}
+
+.task-row {
+  height: 72px;
+}
+
+.show-done:after {
+  content: "SHOW DONE";
+}
+
+.hide-done:after {
+  content: "HIDE DONE";
+}
+
+.clickable {
+  cursor: pointer;
+  text-align: center;
+  padding-top: 3.3%;
 }
