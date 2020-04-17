@@ -27,8 +27,10 @@ const Loading = () => {
   return (
     <div className="d-flex flex-column justify-content-center align-items-center h-100vh">
       <div style={{ opacity: opacity }}>LOADING...</div>
-      <div className="small-bold px-4 py-2" style={{ display: showText }}>
-        Is this taking way too long? Try reloading the page.
+      <div className="small-bold px-4 py-2 text-center" style={{ display: showText }}>
+        Is this taking way too long?
+        <br />
+        Try reloading the page.
       </div>
     </div>
   );

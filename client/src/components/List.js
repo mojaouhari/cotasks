@@ -14,6 +14,8 @@ const List = ({
   const [addTaskFormVisible, setAddTaskFormVisible] = useState(false);
   const [newTask, setNewTask] = useState({ name: "" });
   const [doneTasksVisible, setDoneTasksVisible] = useState(true);
+  const [selectedTaskIndex, setSelectedTaskIndex] = useState(-1);
+  const [editableTasks, setEditableTasks] = useState(null);
 
   // load the list from server
   const loadList = async (id) => {
@@ -25,10 +27,11 @@ const List = ({
   // update task status (done || not done) to server
   const toggleDone = async (task, i) => {
     task.done = !task.done;
-    const res = await Axios.post(`/lists/${id}/${i}`, { task });
+    const res = await Axios.post(`/lists/${id}/${i}`, { task: task });
     // TODO add trycatch to show a toast notification
   };
 
+  // toggles the form to add a new task
   const toggleAddTaskForm = () => {
     setAddTaskFormVisible(!addTaskFormVisible);
     setTimeout(() => {
@@ -36,6 +39,7 @@ const List = ({
     }, 300);
   };
 
+  // submit the new task to be added
   const addTaskFormSubmit = async (e) => {
     e.preventDefault();
     const res = await Axios.post(`/lists/${id}/add`, { task: newTask });
@@ -43,14 +47,36 @@ const List = ({
     setNewTask({ name: "" });
   };
 
-  // on component mount
+  // update task form data
+  const handleChange = (e, i) => {
+    let updatedTasks = [...editableTasks];
+    let updatedTask = { ...updatedTasks[i], [e.target.name]: e.target.value };
+    updatedTasks[i] = updatedTask;
+    setEditableTasks(updatedTasks);
+  };
+
+  const updateTaskFormSubmit = async (e) => {
+    const res = await Axios.post(`/lists/${id}/${selectedTaskIndex}`, { task: editableTasks[selectedTaskIndex] });
+  };
+
+  const showDatePicker = () => {};
+
+  // load the list when: the component mounts and when the data is modified
   useEffect(() => {
     loadList(id);
   }, [id, toggleDone, addTaskFormSubmit]);
 
   useEffect(() => {
-    // console.log(list);
+    setEditableTasks(list.tasks);
+  }, [selectedTaskIndex]);
+
+  useEffect(() => {
+    if (editableTasks === null || editableTasks === undefined) setEditableTasks(list.tasks);
   }, [list]);
+
+  useEffect(() => {
+    // console.log(selectedTask);
+  }, [selectedTaskIndex]);
 
   return (
     <Fragment>
@@ -59,70 +85,125 @@ const List = ({
       ) : (
         <div className="border border-2 border-dark m-2">
           <div className="d-flex flex-row">
-            <div className="p-3 flex-grow-1">{list.name}</div>
-            <div className="flex-column border-left border-2 border-dark">
-              <div className={`p-2 clickable w-100 bg-white-50 small-bold`}>RENAME</div>
-              <div
-                className={`p-2 border-top border-2 border-dark clickable w-100 bg-white-50 small-bold ${
-                  doneTasksVisible ? "hide" : "show"
-                }-done`}
-                onClick={() => setDoneTasksVisible(!doneTasksVisible)}
-              />
+            <div
+              className={`p-3 flex-grow-1 text-left ${selectedTaskIndex > -1 ? "clickable" : ""}`}
+              onClick={() => {
+                selectedTaskIndex > -1 && setSelectedTaskIndex(-1);
+              }}>
+              <div className="small-bold">{selectedTaskIndex > -1 && "RETURN TO "}LIST</div>
+              {list.name}
             </div>
+            {selectedTaskIndex > -1 ? (
+              <div className="p-2 border-left border-2 border-dark clickable small-bold" onClick={(e) => updateTaskFormSubmit(e)}>
+                SAVE
+                <br />
+                CHANGES
+              </div>
+            ) : (
+              <div className="d-flex flex-column border-left border-2 border-dark">
+                <div className={`flex-grow-1 p-2 clickable w-100 small-bold`}>RENAME</div>
+                <div
+                  className={`flex-grow-1 p-2 border-top border-2 border-dark clickable w-100 small-bold 
+                ${doneTasksVisible ? "hide" : "show"}-done`}
+                  onClick={() => setDoneTasksVisible(!doneTasksVisible)}
+                />
+              </div>
+            )}
           </div>
           <div className="d-flex flex-row bg-dark text-white-50 border-top border-2 border-dark small-bold">
             <div className="p-2 flex-72">DONE?</div>
             <div className="border-left border-2 border-dark p-2 flex-grow-1">TASK</div>
             <div className="border-left border-2 border-dark p-2 flex-72">DATE</div>
-            <div className="border-left border-2 border-dark p-2 flex-192">COLLABORATORS</div>
+            <div className="border-left border-2 border-dark p-2 flex-72">CO.</div>
           </div>
           {list.tasks.map((task, i) => (
-            <div key={i} id={`toz-${i}`}>
-              {(!task.done || doneTasksVisible) && (
-                <div className={`task-row d-flex flex-row border-top border-2 border-dark ${task.done ? "text-muted" : ""}`}>
-                  <div
-                    className={`clickable flex-72 bg-white-50 border-0 done-btn-${task.done ? "yes" : "no"}`}
-                    onClick={() => toggleDone(task, i)}
-                  />
-                  <div className="border-left border-2 border-dark p-2 flex-grow-1">{task.name}</div>
-                  <div className="border-left border-2 border-dark p-2 flex-72 small-bold">
-                    {task.date !== undefined ? formatDate(task.date) : "-"}
-                  </div>
-                  <div className="border-left border-2 border-dark p-2 flex-192">...</div>
+            <div
+              className={`task-row d-flex flex-row  ${i > 0 ? " border-top border-2 border-dark" : ""} ${task.done ? " text-muted" : ""} ${
+                (i !== selectedTaskIndex && selectedTaskIndex !== -1) || (task.done && !doneTasksVisible) ? " collapsed" : ""
+              } ${i === selectedTaskIndex ? "expanded" : ""}`}
+              key={i}>
+              {/* <form> */}
+              <div
+                className={`clickable flex-72 done-btn-${task.done ? "yes" : "no"} ${
+                  i === selectedTaskIndex ? "border-bottom border-2 border-dark task-row" : "border-0"
+                }`}
+                onClick={() => toggleDone(task, i)}
+              />
+              <div
+                className={`border-left border-2 border-dark flex-grow-1 ${i === selectedTaskIndex ? "" : "editable overflow-hidden"}`}
+                onClick={() => setSelectedTaskIndex(i)}>
+                {i === selectedTaskIndex ? (
+                  <Fragment>
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="What is the task?"
+                      className={`border-0 w-100 text-body px-2 pt-2 pb-1 ${i === selectedTaskIndex ? "editable p-2" : ""}`}
+                      value={editableTasks[i].name}
+                      onChange={(e) => handleChange(e, i)}
+                    />
+                    <textarea
+                      name="description"
+                      value={editableTasks[i].description}
+                      onChange={(e) => handleChange(e, i)}
+                      placeholder="(no description)"
+                      style={{ height: "calc( 100% - 44px )" }}
+                      className={`${
+                        i === selectedTaskIndex ? "p-2" : "px-2 py-1"
+                      } w-100 small-bold editable text-body border-top border-2 border-dark overflow-auto`}
+                    />
+                  </Fragment>
+                ) : (
+                  <Fragment>
+                    <div className={`text-truncate px-2 pt-2 pb-1 ${i === selectedTaskIndex ? "editable p-2" : ""}`}>{task.name}</div>
+                    <div className={`small-bold text-truncate ${i === selectedTaskIndex ? "p-2" : "px-2 py-1"}`}>{task.description}</div>
+                  </Fragment>
+                )}
+              </div>
+              <div
+                className={`border-left border-2 border-dark flex-72 small-bold`}
+                onClick={() => setSelectedTaskIndex(i) && showDatePicker()}>
+                <div className={`p-2 editable task-row ${i === selectedTaskIndex ? "border-bottom border-2 border-dark" : ""}`}>
+                  {task.date !== undefined ? formatDate(task.date) : "-"}
                 </div>
-              )}
+                {/* TODO amount of time left */}
+              </div>
+              <div className="border-left border-2 border-dark p-2 flex-72">...</div>
+              {/* </form> */}
             </div>
           ))}
-          <div className="task-row d-flex flex-row border-top border-2 border-dark">
-            <div
-              className={`clickable px-3 border-0 w-100 bg-white-50 ${addTaskFormVisible ? "flex-72" : "text-left"}`}
-              onClick={() => toggleAddTaskForm()}>
-              {addTaskFormVisible ? "X" : "ADD A TASK"}
+          {selectedTaskIndex === -1 && (
+            <div className="task-row d-flex flex-row border-top border-2 border-dark">
+              <div
+                className={`clickable px-3 ${addTaskFormVisible ? "flex-72" : "text-left"}`}
+                onClick={() => toggleAddTaskForm()}>
+                {addTaskFormVisible ? "X" : "ADD A TASK"}
+              </div>
+              {addTaskFormVisible ? (
+                <form className="d-flex flex-grow-1" onSubmit={(e) => addTaskFormSubmit(e)}>
+                  <div className="border-left border-2 border-dark flex-grow-1">
+                    <input
+                      type="text"
+                      className="border-0 text-body bg-white-50 w-100 h-100 p-2"
+                      placeholder="What is the task?"
+                      value={newTask.name}
+                      onChange={(e) => setNewTask({ name: e.target.value })}
+                      id="new-task-name"
+                    />
+                  </div>
+                  <div className="border-left border-2 border-dark ">
+                    <input
+                      type="submit"
+                      value="ADD"
+                      className={`p-3 border-0 w-100 h-100 bg-white-50 text-body ${addTaskFormVisible ? "flex-72" : "text-left"}`}
+                    />
+                  </div>
+                </form>
+              ) : (
+                <Fragment />
+              )}
             </div>
-            {addTaskFormVisible ? (
-              <form className="d-flex flex-grow-1" onSubmit={(e) => addTaskFormSubmit(e)}>
-                <div className="border-left border-2 border-dark flex-grow-1">
-                  <input
-                    type="text"
-                    className="border-0 text-body bg-white-50 w-100 h-100 p-2"
-                    placeholder="What is the task?"
-                    value={newTask.name}
-                    onChange={(e) => setNewTask({ name: e.target.value })}
-                    id="new-task-name"
-                  />
-                </div>
-                <div className="border-left border-2 border-dark ">
-                  <input
-                    type="submit"
-                    value="ADD"
-                    className={`p-3 border-0 w-100 h-100 bg-white-50 ${addTaskFormVisible ? "flex-72" : "text-left"}`}
-                  />
-                </div>
-              </form>
-            ) : (
-              <Fragment />
-            )}
-          </div>
+          )}
         </div>
       )}
     </Fragment>

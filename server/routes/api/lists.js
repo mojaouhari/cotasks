@@ -19,8 +19,8 @@ router.get("/:id", async (req, res) => {
     if (!list) return res.status(404).json({ message: "List not found" });
     else return res.status(200).send(list);
   } catch (error) {
-    console.log(err.message);
-    if (err.kind === "ObjectId") return res.status(404).json({ message: "List not found" });
+    console.log(error.message);
+    if (error.kind === "ObjectId") return res.status(404).json({ message: "List not found" });
     res.status(500).send("Server error");
   }
 });
@@ -43,7 +43,6 @@ router.post("/", async (req, res) => {
 // @desc    Add task to list
 // @access  Public
 router.post("/:id/add", async (req, res) => {
-  // TODO test if this works
   try {
     const task = req.body.task;
     const list = await List.updateOne(

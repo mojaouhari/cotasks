@@ -1,6 +1,8 @@
 body {
   font: 24px "Work Sans";
   background: #abc;
+  cursor: default;
+  overflow-y: scroll;
 }
 
 /* TODO set viewport minimum width... */
@@ -11,10 +13,14 @@ body {
 
 .flex-72 {
   flex-basis: 72px;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .flex-192 {
   flex-basis: 192px;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .rounded-max {
@@ -23,7 +29,9 @@ body {
   height: 100%;
 }
 
-.bg-white-50 {
+.bg-white-50,
+.clickable,
+.editable:hover {
   background: #ffffff80;
 }
 
@@ -56,8 +64,24 @@ body {
   height: 100vh;
 }
 
+.border-x-0 {
+  border-left: 0;
+  border-right: 0;
+}
+
 .task-row {
   height: 72px;
+  overflow: hidden;
+  transition: 0.2s ease-in-out height;
+}
+
+.collapsed {
+  height: 0px !important;
+  border-width: 0px !important;
+}
+
+.expanded {
+  height: calc(100vh - 132px);
 }
 
 .show-done:after {
@@ -71,5 +95,23 @@ body {
 .clickable {
   cursor: pointer;
   text-align: center;
-  padding-top: 3.3%;
+  padding-top: 21px;
+}
+
+input, textarea {
+  background: transparent;
+  border: 0;
+}
+
+.editable {
+  cursor: text;
+  background: transparent;
+}
+
+.editable:focus {
+  background: #fff;
+}
+
+.editable > * {
+  transition: 0.2s ease-in padding;
 }
