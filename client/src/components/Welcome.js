@@ -14,13 +14,13 @@ const Welcome = () => {
         officia deserunt mollit anim id est laborum.
       </div>
       <div className="border-top border-2 border-dark clickable text-left p-0">
-        <Link to="/auth" className="p-3 text-body text-decoration-none d-block">
+        <Link to="/login" className="p-3 text-body text-decoration-none d-block">
           <div className="small-bold">Already have an account?</div>
           LOG IN
         </Link>
       </div>
       <div className="border-top border-2 border-dark clickable text-left p-0">
-        <Link to="/auth" className="p-3 text-body text-decoration-none d-block">
+        <Link to="/signup" className="p-3 text-body text-decoration-none d-block">
           CREATE AN ACCOUNT
         </Link>
       </div>

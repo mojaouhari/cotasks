@@ -175,7 +175,7 @@ const List = ({
           {selectedTaskIndex === -1 && (
             <div className="task-row d-flex flex-row border-top border-2 border-dark">
               <div
-                className={`clickable px-3 ${addTaskFormVisible ? "flex-72" : "text-left"}`}
+                className={`clickable w-100 px-3 ${addTaskFormVisible ? "flex-72" : "text-left"}`}
                 onClick={() => toggleAddTaskForm()}>
                 {addTaskFormVisible ? "X" : "ADD A TASK"}
               </div>

@@ -98,7 +98,8 @@ body {
   padding-top: 21px;
 }
 
-input, textarea {
+input,
+textarea {
   background: transparent;
   border: 0;
 }

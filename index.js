@@ -22,5 +22,6 @@ connectToDatabase();
 app.use(express.json({ extended: false }));
 
 // routes
+app.use('/api/auth', require("./server/routes/api/auth"));
 app.use('/api/users', require("./server/routes/api/users"));
 app.use('/api/lists', require("./server/routes/api/lists"));
