@@ -29,18 +29,17 @@ router.post(
   async (req, res) => {
     // console.log(req.body.);
     const errors = validationResult(req);
-    console.log(errors);
     if (!errors.isEmpty()) {
-      return res.status(400).send({ errors: errors.array });
+      return res.status(400).send({ errors: errors.array() });
     }
     let user;
     const { firstname, lastname, username, email, password } = req.body;
     try {
       // check if email or username are already used
       user = await User.findOne({ email: email });
-      if (user) res.status(400).send({ errors: [{ msg: "Email address already in use", param: "email" }] });
+      if (user) return res.status(400).json({ errors: [{ msg: "Email address already in use", param: "email" }] });
       user = await User.findOne({ username: username });
-      if (user) res.status(400).send({ errors: [{ msg: "Username already in use", param: "username" }] });
+      if (user) return res.status(400).json({ errors: [{ msg: "Username already in use", param: "username" }] });
 
       // create the user
       user = new User({ firstname, lastname, username, email, password });
@@ -59,7 +58,7 @@ router.post(
         res.json({ token });
       });
     } catch (error) {
-      console.error(error.message);
+      console.error(error);
       res.status(500).send("Server error");
     }
   }

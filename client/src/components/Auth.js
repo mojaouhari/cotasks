@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import Axios from "axios";
 
-const Auth = ({ isLogin }) => {
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+const Auth = ({ authenticate, isLogin }) => {
   const [login, setLogin] = useState({
     email: "",
     password: "",
@@ -20,35 +15,35 @@ const Auth = ({ isLogin }) => {
     password2: "",
   });
   const handleLoginChange = (e) => {
-    setLogin({ [e.target.name]: e.target.value, ...login });
+    setLogin({ ...login, [e.target.name]: e.target.value });
   };
   const handleSignupChange = (e) => {
-    console.log(e.target.name, e.target.value);
-
     setSignup({ ...signup, [e.target.name]: e.target.value });
-    console.log(signup);
   };
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await Axios.post(`/auth/`, { user: { ...login } });
+      console.log(login);
+      const res = await Axios.post(`/auth/`, { ...login });
       console.log(res);
+      authenticate(res.data.token);
     } catch (error) {
-      console.log(error);
+      authenticate();
+      console.log(error.response);
     }
   };
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log(signup);
-      const user = { ...signup };
-      console.log(user);
       const res = await Axios.post(`/users/`, { ...signup });
       console.log(res);
+      authenticate(res.data.token);
     } catch (error) {
-      console.log(error);
+      authenticate();
+      console.log(error.response);
     }
   };
+
   return (
     <div className="border border-2 border-dark m-2">
       <div className="d-flex flex-row">
@@ -70,7 +65,7 @@ const Auth = ({ isLogin }) => {
                 required
                 type="email"
                 name="email"
-                placeholder="Email or username"
+                placeholder="Your email address"
                 className={`border-0 h-100 w-100 text-body px-2 pt-2 pb-1 editable p-2`}
                 onChange={(e) => handleLoginChange(e)}
                 onBlur={(e) => handleLoginChange(e)}
@@ -146,7 +141,7 @@ const Auth = ({ isLogin }) => {
                 required
                 type="text"
                 name="email"
-                placeholder="Email or username"
+                placeholder="Your email address"
                 className={`border-0 h-100 w-100 text-body px-2 pt-2 pb-1 editable p-2`}
                 onChange={(e) => handleSignupChange(e)}
                 onBlur={(e) => handleSignupChange(e)}

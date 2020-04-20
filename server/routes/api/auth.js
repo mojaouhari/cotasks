@@ -9,11 +9,16 @@ const auth = require("../../middleware/auth");
 const User = require("../../models/User");
 
 // @route   GET api/auth
-// @desc
+// @desc    Load current user
 // @access  Public
-router.get("/", auth, (req, res) => {
+router.get("/", auth, async (req, res) => {
   try {
-  } catch (error) {}
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server error");
+  }
 });
 
 // @route   POST api/auth
@@ -24,18 +29,17 @@ router.post(
   [check("email", "Please enter a valid email").isEmail(), check("password", "Password is required").exists()],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     let user;
+    const { email, password } = req.body;
     try {
       // verify user's email
-      user = await User.findOne({ email: req.body.user.email });
-      if (!user) res.status(400).json({ errors: [{ msg: "Invalid credentials", param: "email" }] });
+      user = await User.findOne({ email: email });
+      if (!user) return res.status(400).json({ errors: [{ msg: "Invalid credentials", param: "email" }] });
 
       // verify password
-      const isMatched = await bcrypt.compare(req.body.user.password, user.password);
-      if (!isMatched) res.status(400).json({ errors: [{ msg: "Invalid credentials", param: "password" }] });
+      const isMatched = await bcrypt.compare(password, user.password);
+      if (!isMatched) return res.status(400).json({ errors: [{ msg: "Invalid credentials", param: "password" }] });
 
       // return jsonwebtoken
       const payload = {

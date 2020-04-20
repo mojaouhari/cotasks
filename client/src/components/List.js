@@ -17,6 +17,12 @@ const List = ({
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(-1);
   const [editableTasks, setEditableTasks] = useState(null);
 
+  // update view data (call this whenever data changes)
+  const updateView = async () => {
+    await loadList(id);
+    
+  };
+
   // load the list from server
   const loadList = async (id) => {
     const res = await Axios.get(`/lists/${id}`);
@@ -28,6 +34,7 @@ const List = ({
   const toggleDone = async (task, i) => {
     task.done = !task.done;
     const res = await Axios.post(`/lists/${id}/${i}`, { task: task });
+    updateView();
     // TODO add trycatch to show a toast notification
   };
 
@@ -43,8 +50,10 @@ const List = ({
   const addTaskFormSubmit = async (e) => {
     e.preventDefault();
     const res = await Axios.post(`/lists/${id}/add`, { task: newTask });
+    // reset the form
     toggleAddTaskForm();
     setNewTask({ name: "" });
+    updateView();
   };
 
   // update task form data
@@ -57,6 +66,7 @@ const List = ({
 
   const updateTaskFormSubmit = async (e) => {
     const res = await Axios.post(`/lists/${id}/${selectedTaskIndex}`, { task: editableTasks[selectedTaskIndex] });
+    updateView();
   };
 
   const showDatePicker = () => {};
@@ -64,11 +74,11 @@ const List = ({
   // load the list when: the component mounts and when the data is modified
   useEffect(() => {
     loadList(id);
-  }, [id, toggleDone, addTaskFormSubmit]);
+  }, [id]);
 
   useEffect(() => {
     setEditableTasks(list.tasks);
-  }, [selectedTaskIndex]);
+  }, [list.tasks]);
 
   useEffect(() => {
     if (editableTasks === null || editableTasks === undefined) setEditableTasks(list.tasks);
@@ -174,9 +184,7 @@ const List = ({
           ))}
           {selectedTaskIndex === -1 && (
             <div className="task-row d-flex flex-row border-top border-2 border-dark">
-              <div
-                className={`clickable w-100 px-3 ${addTaskFormVisible ? "flex-72" : "text-left"}`}
-                onClick={() => toggleAddTaskForm()}>
+              <div className={`clickable w-100 px-3 ${addTaskFormVisible ? "flex-72" : "text-left"}`} onClick={() => toggleAddTaskForm()}>
                 {addTaskFormVisible ? "X" : "ADD A TASK"}
               </div>
               {addTaskFormVisible ? (

@@ -1,23 +1,75 @@
-import React from "react";
-import { Switch, Route, BrowserRouter as Router } from "react-router-dom";
+import React, { useState, useEffect, Fragment } from "react";
+import { Redirect, Switch, Route, BrowserRouter as Router } from "react-router-dom";
 import "./App.css";
 import List from "./components/List";
 import Welcome from "./components/Welcome";
+import Dashboard from "./components/Dashboard";
 import Auth from "./components/Auth";
 import Axios from "axios";
+import { setAuthToken } from "./utils";
+import Loading from "./components/Loading";
+
+if (localStorage.token) {
+  setAuthToken(localStorage.token);
+}
 
 const App = () => {
-  // Axios.defaults.headers["Conten-Type"] = "application/json";
-  // Axios.defaults.proxy.host = "http://localhost";
-  // Axios.defaults.proxy.port = "5000";
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const authenticate = (token) => {
+    if (token) {
+      localStorage.setItem("token", token);
+      setAuthToken(localStorage.token);
+      setIsAuthenticated(true);
+      loadUser();
+    } else {
+      localStorage.removeItem("token");
+      setIsAuthenticated(false);
+      setLoading(false);
+    }
+  };
 
-  return (
+  const loadUser = async () => {
+    try {
+      const res = await Axios.get("/auth/");
+      setUser(res.data);
+      setIsAuthenticated(true);
+      setLoading(false);
+    } catch (error) {
+      setIsAuthenticated(false);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  return loading ? (
+    <Loading />
+  ) : (
     <Router>
       <Switch>
-        <Route exact path="/" component={Welcome} />
-        <Route exact path="/login" component={() => <Auth isLogin={true} />} />
-        <Route exact path="/signup" component={Auth} />
-        <Route exact path="/list/:id" component={List} />
+        {isAuthenticated ? (
+          <Fragment>
+            <Route exact path="/" component={Dashboard} />
+            <Route exact path="/list/:id" component={List} />
+            <Route exact path="/(login|signup)">
+              <Redirect to="/" />
+            </Route>
+          </Fragment>
+        ) : (
+          <Fragment>
+            <Route exact path="/" component={Welcome} />
+            <Route isAuthenticated={isAuthenticated} exact path="/login">
+              <Auth authenticate={authenticate} isLogin={true} />
+            </Route>
+            <Route exact path="/signup">
+              <Auth authenticate={authenticate} isLogin={false} />
+            </Route>
+          </Fragment>
+        )}
       </Switch>
     </Router>
   );
