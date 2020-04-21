@@ -4,14 +4,30 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("../../../config");
+const auth = require("../../middleware/auth");
 
 const User = require("../../models/User");
 
 // @route   GET api/users
 // @desc    Get all users
-// @access  Public
-router.get("/", (req, res) => {
-  res.send("User route");
+// @access  Private
+router.get("/", auth, async (req, res) => {
+  try {
+    const list = await User.aggregate([
+      {
+        $project: {
+          _id: 1,
+          firstname: 1,
+          lastname: 1,
+          email: 1,
+        },
+      },
+    ]);
+    res.send(list);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server error");
+  }
 });
 
 // @route   POST api/users

@@ -1,4 +1,5 @@
-$white: #abc;
+// $white: #abc;
+$white: #ddd;
 $body-bg: $white;
 
 @import "~bootstrap/scss/bootstrap.scss";
@@ -7,4 +8,12 @@ input:-webkit-autofill {
   -webkit-text-fill-color: $body-color;
   -webkit-box-shadow: 0 0 0px 36px $white inset;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+.bg-black-50 {
+  background: rgba($black, .5);
+}
+
+.bg-black-30 {
+  background: rgba($black, .3);
 }

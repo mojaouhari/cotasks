@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const Loading = () => {
+const Loading = ({ isFullScreen }) => {
   const CYCLE_DURATION = 1000;
   const [opacity, setOpacity] = useState(1);
   const [showText, setShowText] = useState("none");
@@ -25,9 +25,9 @@ const Loading = () => {
   }, []);
 
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center h-100vh">
+    <div className={`d-flex flex-column justify-content-center align-items-center p-4 ${isFullScreen ? "h-100vh" : ""}`}>
       <div style={{ opacity: opacity }}>LOADING...</div>
-      <div className="small-bold px-4 py-2 text-center" style={{ display: showText }}>
+      <div className="small-bold py-1 text-center" style={{ display: showText }}>
         Is this taking way too long?
         <br />
         Try reloading the page.

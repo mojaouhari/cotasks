@@ -1,6 +1,5 @@
 body {
   font: 24px "Work Sans";
-  background: #abc;
   cursor: default;
   overflow-y: scroll;
 }
@@ -75,6 +74,10 @@ body {
   transition: 0.2s ease-in-out height;
 }
 
+.content-box {
+  box-sizing: content-box;
+}
+
 .collapsed {
   height: 0px !important;
   border-width: 0px !important;
@@ -85,17 +88,22 @@ body {
 }
 
 .show-done:after {
-  content: "SHOW DONE";
+  content: "SHOW\A DONE";
+  white-space: pre;
 }
 
 .hide-done:after {
-  content: "HIDE DONE";
+  content: "HIDE\A DONE";
+  white-space: pre;
 }
 
 .clickable {
-  cursor: pointer;
   text-align: center;
   padding-top: 21px;
+}
+.clickable,
+.clickable > * {
+  cursor: pointer !important;
 }
 
 input,
@@ -116,3 +124,32 @@ textarea {
 .editable > * {
   transition: 0.2s ease-in padding;
 }
+
+.suggestions {
+  background: #fff;
+  list-style: none;
+  overflow-y: auto;
+  padding-left: 0;
+  position: absolute;
+  z-index: 1;
+  right: 0;
+}
+
+/* .suggestions li {
+  padding: 0.5rem;
+}
+
+.suggestion-active,
+.suggestions li:hover {
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+.suggestion-active > span,
+.suggestions li:hover > span {
+  color: #eee;
+}
+
+.suggestions li:not(:last-of-type) {
+  border-bottom: 1px solid #ddd;
+} */

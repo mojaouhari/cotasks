@@ -47,7 +47,7 @@ const App = () => {
   }, []);
 
   return loading ? (
-    <Loading />
+    <Loading isFullScreen={true} />
   ) : (
     <Router>
       <Switch>

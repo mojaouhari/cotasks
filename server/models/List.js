@@ -34,9 +34,15 @@ const ListSchema = new mongoose.Schema({
       },
       collaborators: [
         {
-          collaborator: {
+          id: {
             type: Schema.Types.ObjectId,
             ref: "users",
+          },
+          firstname: {
+            type: String,
+          },
+          lastname: {
+            type: String,
           },
         },
       ],

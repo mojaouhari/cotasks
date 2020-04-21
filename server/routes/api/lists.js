@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const auth = require("../../middleware/auth");
+const mongoose = require("mongoose");
 
 const List = require("../../models/List");
 
@@ -9,7 +10,25 @@ const List = require("../../models/List");
 // @access  Private
 router.get("/", auth, async (req, res) => {
   try {
-    const list = await List.find({ creator: req.user.id });
+    const list = await List.aggregate([
+      { $match: { creator: mongoose.Types.ObjectId(req.user.id) } },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          taskCount: { $size: "$tasks" },
+          doneCount: {
+            $size: {
+              $filter: {
+                input: "$tasks",
+                as: "item",
+                cond: { $eq: ["$$item.done", true] },
+              },
+            },
+          },
+        },
+      },
+    ]);
     res.send(list);
   } catch (error) {
     console.log(error.message);
