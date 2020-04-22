@@ -2,6 +2,7 @@ body {
   font: 24px "Work Sans";
   cursor: default;
   overflow-y: scroll;
+  user-select: none;
 }
 
 /* TODO set viewport minimum width... */
@@ -70,7 +71,6 @@ body {
 
 .task-row {
   height: 72px;
-  overflow: hidden;
   transition: 0.2s ease-in-out height;
 }
 
@@ -135,21 +135,6 @@ textarea {
   right: 0;
 }
 
-/* .suggestions li {
-  padding: 0.5rem;
+.text-underlined {
+  text-decoration: underline;
 }
-
-.suggestion-active,
-.suggestions li:hover {
-  background-color: #007bff;
-  color: #fff;
-  cursor: pointer;
-}
-.suggestion-active > span,
-.suggestions li:hover > span {
-  color: #eee;
-}
-
-.suggestions li:not(:last-of-type) {
-  border-bottom: 1px solid #ddd;
-} */

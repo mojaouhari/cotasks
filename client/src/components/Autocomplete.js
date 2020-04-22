@@ -1,6 +1,17 @@
 import React, { useState, useEffect, Fragment } from "react";
 
-const Autocomplete = ({ suggestions = [], relevantAttributes = [], value, className, placeholder, onChange, onSelect }) => {
+const Autocomplete = ({
+  suggestions = [],
+  relevantAttributeNames,
+  valueAttributeName,
+  SuggestionsList,
+  value,
+  name,
+  className,
+  placeholder,
+  onChange,
+  onSelect,
+}) => {
   const [state, setState] = useState({
     // The active selection's index
     activeSuggestion: 0,
@@ -16,15 +27,16 @@ const Autocomplete = ({ suggestions = [], relevantAttributes = [], value, classN
     const userInput = e.currentTarget.value;
 
     // Filter our suggestions that don't contain the user's input
-    // TODO uses relevantattributes here
-    const filteredSuggestions = suggestions.filter(
-      (suggestion) =>
-        suggestion.firstname.toLowerCase().indexOf(userInput.toLowerCase()) > -1 ||
-        suggestion.lastname.toLowerCase().indexOf(userInput.toLowerCase()) > -1 ||
-        suggestion.email.toLowerCase().indexOf(userInput.toLowerCase()) > -1
-    );
+    const filteredSuggestions = suggestions.filter((suggestion) => {
+      let predicate = false;
+      relevantAttributeNames.map((attributeName) => {
+        predicate = predicate || suggestion[attributeName].toLowerCase().indexOf(userInput.toLowerCase()) > -1;
+      });
+      return predicate;
+    });
 
     setState({
+      ...state,
       activeSuggestion: 0,
       filteredSuggestions,
       showSuggestions: true,
@@ -33,46 +45,51 @@ const Autocomplete = ({ suggestions = [], relevantAttributes = [], value, classN
   };
 
   const onClick = (e, suggestion) => {
-    if (suggestion) onSelect({ target: { value: suggestion } });
+    if (suggestion) onSelect({ target: { name: name, value: suggestion } });
     setState({
+      ...state,
       activeSuggestion: 0,
       filteredSuggestions: [],
       showSuggestions: false,
-      userInput: e.currentTarget.getAttribute("value"),
+      userInput: suggestion[valueAttributeName] || "",
     });
   };
 
   const onKeyDown = (e) => {
     const { activeSuggestion, filteredSuggestions } = state;
-
+    
     // User pressed the enter key
     if (e.keyCode === 13) {
       e.preventDefault();
-
-      if (filteredSuggestions[activeSuggestion]) onSelect({ target: { value: filteredSuggestions[activeSuggestion] } });
-
-      const userInput = filteredSuggestions[activeSuggestion] ? filteredSuggestions[activeSuggestion]._id : "";
+      if (filteredSuggestions[activeSuggestion]) onSelect({ target: { name: name, value: filteredSuggestions[activeSuggestion] } });
       setState({
+        ...state,
         activeSuggestion: 0,
         showSuggestions: false,
-        userInput: userInput,
+        userInput: filteredSuggestions[activeSuggestion][valueAttributeName] || "",
       });
     }
+
+    // User pressed the escape key
+    if (e.keyCode === 27) {
+      setState({
+        ...state,
+        showSuggestions: false,
+      });
+    }
+
     // User pressed the up arrow
     else if (e.keyCode === 38) {
-      if (activeSuggestion === 0) {
-        return;
-      }
-
-      setState({ activeSuggestion: activeSuggestion - 1 });
+      e.preventDefault();
+      if (activeSuggestion === 0) return;
+      setState({ ...state, activeSuggestion: activeSuggestion - 1 });
     }
+
     // User pressed the down arrow
     else if (e.keyCode === 40) {
-      if (activeSuggestion === filteredSuggestions.length - 1) {
-        return;
-      }
-
-      setState({ activeSuggestion: activeSuggestion + 1 });
+      e.preventDefault();
+      if (filteredSuggestions && activeSuggestion === filteredSuggestions.length - 1) return;
+      setState({ ...state, activeSuggestion: activeSuggestion + 1 });
     }
   };
 
@@ -81,25 +98,28 @@ const Autocomplete = ({ suggestions = [], relevantAttributes = [], value, classN
   }, [state.userInput]);
 
   return (
-    <Fragment>
+    <div className="position-relative">
       <input
         type="text"
         className={className}
-        style={{ position: "relative" }}
         onChange={onInputChange}
         onKeyDown={onKeyDown}
         value={state.userInput}
         placeholder={placeholder}
       />
-      {state.showSuggestions && state.userInput && (
-        <SuggestionsList onClick={onClick} filteredSuggestions={state.filteredSuggestions} activeSuggestion={state.activeSuggestion} />
-      )}
-    </Fragment>
+      {state.showSuggestions &&
+        state.userInput &&
+        (SuggestionsList ? (
+          <SuggestionsList onClick={onClick} filteredSuggestions={state.filteredSuggestions} activeSuggestion={state.activeSuggestion} />
+        ) : (
+          <DefaultSuggestionsList onClick={onClick} filteredSuggestions={state.filteredSuggestions} activeSuggestion={state.activeSuggestion} />
+        ))}
+    </div>
   );
 };
 
-const SuggestionsList = ({ filteredSuggestions, activeSuggestion, onClick }) => {
-  return filteredSuggestions.length ? (
+const DefaultSuggestionsList = ({ filteredSuggestions, activeSuggestion, onClick }) =>
+  filteredSuggestions.length ? (
     <ul className="suggestions">
       {filteredSuggestions.map((suggestion, index) => (
         <li className={`p-2 ${index === activeSuggestion ? "bg-primary text-white" : ""}`} key={index} onClick={(e) => onClick(e, suggestion)}>
@@ -109,10 +129,8 @@ const SuggestionsList = ({ filteredSuggestions, activeSuggestion, onClick }) => 
       ))}
     </ul>
   ) : (
-    <ul className="suggestions rounded-bottom shadow">
+    <ul className="suggestions">
       <div className="py-2 px-3 text-muted font-italic">No results found</div>
     </ul>
   );
-};
-
 export default Autocomplete;

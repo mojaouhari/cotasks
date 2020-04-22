@@ -6,11 +6,11 @@ const mongoose = require("mongoose");
 const List = require("../../models/List");
 
 // @route   GET api/lists
-// @desc    Get all lists created by the user
+// @desc    Get all lists created by the user and the lists in which he collaborates
 // @access  Private
 router.get("/", auth, async (req, res) => {
   try {
-    const list = await List.aggregate([
+    const userLists = await List.aggregate([
       { $match: { creator: mongoose.Types.ObjectId(req.user.id) } },
       {
         $project: {
@@ -29,7 +29,50 @@ router.get("/", auth, async (req, res) => {
         },
       },
     ]);
-    res.send(list);
+    const othersLists = await List.aggregate([
+      {
+        $match: {
+          "tasks.collaborators": { $elemMatch: { _id: mongoose.Types.ObjectId(req.user.id) } },
+          creator: { $not: { $eq: mongoose.Types.ObjectId(req.user.id) } },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "creator",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          "creator.firstname": { $arrayElemAt: ["$user.firstname", 0] },
+          "creator.lastname": { $arrayElemAt: ["$user.lastname", 0] },
+          totalCount: { $size: "$tasks" },
+          taskCount: {
+            $size: {
+              $filter: {
+                input: "$tasks",
+                as: "task",
+                cond: { $in: [mongoose.Types.ObjectId(req.user.id), "$$task.collaborators._id"] },
+              },
+            },
+          },
+          doneCount: {
+            $size: {
+              $filter: {
+                input: "$tasks",
+                as: "task",
+                cond: { $and: [{ $eq: ["$$task.done", true] }, { $in: [mongoose.Types.ObjectId(req.user.id), "$$task.collaborators._id"] }] },
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.send({ userLists, othersLists });
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server error");
@@ -91,7 +134,6 @@ router.post("/:id/add", async (req, res) => {
 // @desc    Rename list
 // @access  Public
 router.post("/:id/rename", async (req, res) => {
-  // TODO test if this works
   try {
     const name = req.body.name;
     const list = await List.updateOne(

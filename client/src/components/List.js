@@ -22,7 +22,8 @@ const List = ({
   const [editableTasks, setEditableTasks] = useState(null);
   const [listName, setListName] = useState("");
   const [collaboratorSearchField, setCollaboratorSearchField] = useState("");
-  const [allUsers, setAllUsers] = useState(null);
+  const [allUsers, setAllUsers] = useState([]);
+  const [tooltipUserID, setTooltipUserID] = useState("");
 
   // update view data (call this whenever data changes)
   const updateView = async () => {
@@ -65,12 +66,37 @@ const List = ({
   // update task form data
   const handleChange = (e, i) => {
     let updatedTasks = [...editableTasks];
-    let updatedTask = { ...updatedTasks[i], [e.target.name]: e.target.value };
+    let updatedTask;
+    updatedTask = { ...updatedTasks[i], [e.target.name]: e.target.value };
     updatedTasks[i] = updatedTask;
+    setEditableTasks(updatedTasks);
+  };
+  const handleAddCollaborator = (e, i) => {
+    // checking for duplicates
+    if (editableTasks[i].collaborators.some((collaborator) => collaborator._id != e.target.value._id)) {
+      // TODO show toast alert that you're adding a duplicate
+    } else {
+      let updatedTasks = [...editableTasks];
+      let updatedTask;
+      updatedTask = { ...updatedTasks[i], collaborators: [...updatedTasks[i].collaborators, e.target.value] };
+      updatedTasks[i] = updatedTask;
+      setEditableTasks(updatedTasks);
+    }
+  };
+  const handleRemoveCollaborator = (e, i, j) => {
+    let updatedTasks = [...editableTasks];
+    let updatedTask, updatedCollaborators;
+    updatedCollaborators = updatedTasks[i].collaborators;
+    updatedCollaborators.splice(j, 1);
+    updatedTask = { ...updatedTasks[i], collaborators: updatedCollaborators };
+    updatedTasks[i] = updatedTask;
+    console.log(updatedTasks);
     setEditableTasks(updatedTasks);
   };
 
   const updateTaskFormSubmit = async (e) => {
+    console.log("OOOOP");
+    
     const res = await Axios.post(`/lists/${id}/${selectedTaskIndex}`, { task: editableTasks[selectedTaskIndex] });
     updateView();
   };
@@ -84,6 +110,11 @@ const List = ({
     setAllUsers(res.data);
   };
 
+  const loadAllUsersOnce = () => {
+    if (!allUsers.length) loadAllUsers();
+    return true;
+  };
+
   // load the list when: the component mounts and when the data is modified
   useEffect(() => {
     loadList(id);
@@ -95,11 +126,11 @@ const List = ({
 
   useEffect(() => {
     setEditableTasks(list.tasks);
-  }, [list.tasks]);
+  }, [list.tasks, selectedTaskIndex]);
 
   useEffect(() => {
-    if (allUsers === null) loadAllUsers();
-  }, [collaboratorSearchField]);
+    loadAllUsersOnce();
+  }, [collaboratorSearchField, tooltipUserID]);
 
   useEffect(() => {
     // console.log(selectedTask);
@@ -117,7 +148,10 @@ const List = ({
               onClick={() => {
                 selectedTaskIndex > -1 ? setSelectedTaskIndex(-1) : document.getElementById("rename-list").focus();
               }}>
-              <div className="small-bold">{selectedTaskIndex > -1 && "RETURN TO "}LIST</div>
+              <div className="small-bold">
+                {selectedTaskIndex > -1 && "RETURN TO "}LIST
+                {editableTasks[selectedTaskIndex] !== list.tasks[selectedTaskIndex] && " WHITHOUT SAVING"}
+              </div>
               {selectedTaskIndex > -1 ? (
                 <div style={{ padding: "1px 0" }}>{list.name}</div>
               ) : (
@@ -132,8 +166,15 @@ const List = ({
               )}
             </div>
             {selectedTaskIndex > -1 ? (
-              <div className="border-left border-2 border-dark flex-72" onClick={(e) => updateTaskFormSubmit(e)}>
-                <div className="p-2 clickable h-100 small-bold d-flex align-items-center justify-content-center">SAVE</div>
+              <div
+                className="border-left border-2 border-dark flex-72"
+                onClick={(e) => editableTasks[selectedTaskIndex] !== list.tasks[selectedTaskIndex] && updateTaskFormSubmit(e)}>
+                <div
+                  className={`p-2 h-100 small-bold d-flex align-items-center justify-content-center ${
+                    editableTasks[selectedTaskIndex] !== list.tasks[selectedTaskIndex] ? "clickable" : "text-muted"
+                  }`}>
+                  SAVE
+                </div>
               </div>
             ) : (
               <div className="border-left border-2 border-dark flex-72">
@@ -153,7 +194,7 @@ const List = ({
           </div>
           {list.tasks.map((task, i) => (
             <div
-              className={`task-row content-box d-flex flex-row  ${i > 0 ? " border-top border-2 border-dark" : ""} ${
+              className={`task-row content-box overflow-hidden d-flex flex-row  ${i > 0 ? " border-top border-2 border-dark" : ""} ${
                 task.done ? " text-muted" : ""
               } ${(i !== selectedTaskIndex && selectedTaskIndex !== -1) || (task.done && !doneTasksVisible) ? " collapsed" : ""} ${
                 i === selectedTaskIndex ? "expanded" : ""
@@ -165,7 +206,9 @@ const List = ({
                 }`}
                 onClick={() => toggleDone(task, i)}
               />
-              <div className={`border-left border-2 border-dark flex-grow-1 ${i === selectedTaskIndex ? "" : "editable overflow-hidden"}`}>
+              <div
+                className={`border-left border-2 border-dark flex-grow-1 ${i === selectedTaskIndex ? "" : "editable"}`}
+                style={{ overflowX: "hidden" }}>
                 {i === selectedTaskIndex ? (
                   <Fragment>
                     <input
@@ -173,7 +216,8 @@ const List = ({
                       ref={taskNameInput}
                       name="name"
                       placeholder="What is the task?"
-                      className={`border-0 w-100 text-body px-2 pt-2 pb-1 ${i === selectedTaskIndex ? "editable p-2" : ""}`}
+                      style={{ paddingTop: "0.7rem" }}
+                      className={`border-0 w-100 text-body px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}
                       value={editableTasks[i].name}
                       onChange={(e) => handleChange(e, i)}
                     />
@@ -199,7 +243,7 @@ const List = ({
                         }, 200);
                       }}
                       style={{ paddingTop: "0.7rem" }}
-                      className={`text-truncate px-2 ${i === selectedTaskIndex ? "editable p-2" : ""}`}>
+                      className={`text-truncate px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}>
                       {task.name}
                     </div>
                     <div
@@ -222,34 +266,66 @@ const List = ({
                 </div>
                 {/* TODO amount of time left */}
               </div>
-              <div onClick={() => setSelectedTaskIndex(i)} className="border-left border-2 border-dark flex-72 editable">
+              <div
+                onClick={() => setSelectedTaskIndex(i)}
+                className={`border-left border-2 border-dark flex-72 ${i === selectedTaskIndex ? "" : "editable"}`}>
                 <div className="d-flex flex-wrap align-items-start">
                   {i === selectedTaskIndex && (
                     <div className="border-bottom border-2 border-dark ">
-                      {/* <input
-                        type="text"
-                        className="small-bold text-body w-100 h-100 d-block px-1 py-2"
-                        value={collaboratorSearchField}
-                        onChange={(e) => setCollaboratorSearchField(e.target.value)}
-                        placeholder="Add..."
-                      /> */}
                       <Autocomplete
                         placeholder="Add..."
                         suggestions={[...allUsers]}
+                        name="collaborators"
                         value={collaboratorSearchField}
-                        className="small-bold text-body w-100 h-100 d-block px-1 py-2"
+                        relevantAttributeNames={["firstname", "lastname", "email"]}
+                        className="editable small-bold text-body w-100 h-100 d-block px-1 py-2"
                         onChange={(e) => setCollaboratorSearchField(e.target.value)}
-                        onSelect={(e) => editableTasks[i].collaborators.push(e.target.value)}
+                        onSelect={(e) => handleAddCollaborator(e, i)}
+                        SuggestionsList={({ filteredSuggestions, activeSuggestion, onClick }) =>
+                          filteredSuggestions.length ? (
+                            <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark bg-white">
+                              {filteredSuggestions.map((suggestion, i) => (
+                                <li
+                                  className={`p-1 clickable text-left ${i > 0 ? "border-top border-2 border-dark" : ""}`}
+                                  key={i}
+                                  onClick={(e) => onClick(e, suggestion)}>
+                                  <div className={`text-white px-2 pt-2 bg-dark ${i === activeSuggestion ? "text-underlined" : ""}`}>
+                                    {suggestion.firstname} {suggestion.lastname}
+                                  </div>
+                                  <div className="text-secondary px-2 pb-2 bg-dark">{suggestion.email}</div>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark">
+                              <div className="py-2 px-3 bg-dark text-secondary font-italic">No results found</div>
+                            </ul>
+                          )
+                        }
                       />
                     </div>
                   )}
-                  {/* {[0, 0, 0, 0, 0, 0].map((collaborator, i) => ( */}
-                  {(i === selectedTaskIndex ? editableTasks[i] : task).collaborators.map((collaborator, i) => (
+                  {(i === selectedTaskIndex ? editableTasks[i] : task).collaborators.map((collaborator, j) => (
                     <div
-                      key={i}
-                      style={{ height: 33, width: 32, marginTop: 2, marginLeft: 2, marginRight: i % 2 !== 0 ? 2 : 0 }}
-                      className={`small-bold text-center py-2 text-white bg-dark`}>
-                      MJ
+                      key={j}
+                      onMouseOver={(e) => loadAllUsersOnce() && setTooltipUserID(collaborator._id)}
+                      onMouseLeave={(e) =>
+                        setTimeout(() => {
+                          setTooltipUserID("");
+                        }, 50)
+                      }
+                      style={{ height: 33, width: 32, marginTop: 2, marginLeft: 2, marginRight: j % 2 !== 0 ? 2 : 0 }}
+                      className={`small-bold text-center py-2 text-white bg-dark position-relative`}>
+                      {collaborator.firstname.substring(0, 1)}
+                      {collaborator.lastname.substring(0, 1)}
+                      <UserTooltip
+                        index={j}
+                        visible={collaborator._id === tooltipUserID}
+                        userID={collaborator._id}
+                        allUsers={allUsers}
+                        showRemove={i === selectedTaskIndex}
+                        onRemoveClick={(e) => handleRemoveCollaborator(e, i, j)}
+                      />
                     </div>
                   ))}
                 </div>
@@ -289,6 +365,33 @@ const List = ({
         </div>
       )}
     </Fragment>
+  );
+};
+
+const UserTooltip = ({ visible, userID, allUsers, showRemove, onRemoveClick, index }) => {
+  const user = allUsers.filter((user) => user._id === userID)[0];
+  return visible && user ? (
+    allUsers.length > 0 ? (
+      <div
+        className="border border-2 border-dark position-absolute text-left bg-dark"
+        style={{ top: index > 1 ? "unset" : 0, bottom: index > 1 ? 0 : "unset", right: "100%" }}>
+        <div className={`text-white px-2 pt-2 bg-dark border-0`}>
+          {user.firstname} {user.lastname}
+        </div>
+        <div className="text-secondary px-2 pb-2 bg-dark">{user.email}</div>
+        {showRemove && (
+          <div className="bg-white">
+            <div className={`clickable text-nowrap p-2 text-left text-body`} onClick={(e) => onRemoveClick(e)}>
+              REMOVE COLLABORATOR
+            </div>
+          </div>
+        )}
+      </div>
+    ) : (
+      <Loading />
+    )
+  ) : (
+    <></>
   );
 };
 

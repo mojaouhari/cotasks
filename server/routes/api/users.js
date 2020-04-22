@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("../../../config");
 const auth = require("../../middleware/auth");
+const mongoose = require("mongoose");
+
 
 const User = require("../../models/User");
 
@@ -13,7 +15,7 @@ const User = require("../../models/User");
 // @access  Private
 router.get("/", auth, async (req, res) => {
   try {
-    const list = await User.aggregate([
+    const user = await User.aggregate([
       {
         $project: {
           _id: 1,
@@ -23,12 +25,36 @@ router.get("/", auth, async (req, res) => {
         },
       },
     ]);
-    res.send(list);
+    res.send(user);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server error");
   }
 });
+
+// @route   GET api/users/:id
+// @desc    Get a user
+// @access  Private
+router.get("/:id", auth, async (req, res) => {
+  try {
+    const user = await User.aggregate([
+      { $match: { _id: mongoose.Types.ObjectId(req.params.id) } },
+      {
+        $project: {
+          _id: 1,
+          firstname: 1,
+          lastname: 1,
+          email: 1,
+        },
+      },
+    ]);
+    res.send(user);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server error");
+  }
+});
+
 
 // @route   POST api/users
 // @desc    Create a user
