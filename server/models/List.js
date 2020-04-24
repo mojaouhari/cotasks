@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const ListSchema = new mongoose.Schema({
+const ListSchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -23,11 +23,6 @@ const ListSchema = new mongoose.Schema({
       },
       description: {
         type: String,
-      },
-      creator: {
-        type: Schema.Types.ObjectId,
-        ref: "users",
-        required: true,
       },
       date: {
         type: Date,

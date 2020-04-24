@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../../middleware/auth");
 const mongoose = require("mongoose");
-
 const List = require("../../models/List");
 
 // @route   GET api/lists
@@ -81,8 +80,8 @@ router.get("/", auth, async (req, res) => {
 
 // @route   GET api/lists/:id
 // @desc    Get list by id
-// @access  Public
-router.get("/:id", async (req, res) => {
+// @access  Private
+router.get("/:id", auth, async (req, res) => {
   try {
     const list = await List.findById(req.params.id);
     if (!list) return res.status(404).json({ message: "List not found" });
@@ -110,8 +109,8 @@ router.post("/", auth, async (req, res) => {
 
 // @route   POST api/lists/:id/add
 // @desc    Add task to list
-// @access  Public
-router.post("/:id/add", async (req, res) => {
+// @access  Private
+router.post("/:id/add", auth, async (req, res) => {
   try {
     const task = req.body.task;
     const list = await List.updateOne(
@@ -132,8 +131,8 @@ router.post("/:id/add", async (req, res) => {
 
 // @route   POST api/lists/:id/rename
 // @desc    Rename list
-// @access  Public
-router.post("/:id/rename", async (req, res) => {
+// @access  Private
+router.post("/:id/rename", auth, async (req, res) => {
   try {
     const name = req.body.name;
     const list = await List.updateOne(
@@ -154,8 +153,8 @@ router.post("/:id/rename", async (req, res) => {
 
 // @route   POST api/lists/:id/:i
 // @desc    Update a task in a list
-// @access  Public
-router.post("/:id/:i", async (req, res) => {
+// @access  Private
+router.post("/:id/:i", auth, async (req, res) => {
   try {
     const task = req.body.task;
     const list = await List.updateOne(
@@ -173,7 +172,5 @@ router.post("/:id/:i", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-
-// TODO make the routes private !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 module.exports = router;

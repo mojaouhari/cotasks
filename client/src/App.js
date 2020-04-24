@@ -50,27 +50,33 @@ const App = () => {
     <Loading isFullScreen={true} />
   ) : (
     <Router>
-      <Switch>
-        {isAuthenticated ? (
-          <Fragment>
-            <Route exact path="/" component={Dashboard} />
-            <Route exact path="/list/:id" component={List} />
-            <Route exact path="/(login|signup)">
-              <Redirect to="/" />
-            </Route>
-          </Fragment>
-        ) : (
-          <Fragment>
-            <Route exact path="/" component={Welcome} />
-            <Route isAuthenticated={isAuthenticated} exact path="/login">
-              <Auth authenticate={authenticate} isLogin={true} />
-            </Route>
-            <Route exact path="/signup">
-              <Auth authenticate={authenticate} isLogin={false} />
-            </Route>
-          </Fragment>
-        )}
-      </Switch>
+      <div className="container p-0">
+        <div className="col-sm-12 col-md-9 p-0">
+          <Switch>
+            {isAuthenticated ? (
+              <Fragment>
+                <Route exact path="/">
+                  <Dashboard user={user} />
+                </Route>
+                <Route exact path="/list/:id" component={List} />
+                <Route exact path="/(login|signup)">
+                  <Redirect to="/" />
+                </Route>
+              </Fragment>
+            ) : (
+              <Fragment>
+                <Route exact path="/" component={Welcome} />
+                <Route isAuthenticated={isAuthenticated} exact path="/login">
+                  <Auth authenticate={authenticate} isLogin={true} />
+                </Route>
+                <Route exact path="/signup">
+                  <Auth authenticate={authenticate} isLogin={false} />
+                </Route>
+              </Fragment>
+            )}
+          </Switch>
+        </div>
+      </div>
     </Router>
   );
 };

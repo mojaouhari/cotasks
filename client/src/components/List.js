@@ -73,7 +73,7 @@ const List = ({
   };
   const handleAddCollaborator = (e, i) => {
     // checking for duplicates
-    if (editableTasks[i].collaborators.some((collaborator) => collaborator._id != e.target.value._id)) {
+    if (editableTasks[i].collaborators.some((collaborator) => collaborator._id !== e.target.value._id)) {
       // TODO show toast alert that you're adding a duplicate
     } else {
       let updatedTasks = [...editableTasks];

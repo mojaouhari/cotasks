@@ -3,7 +3,7 @@ import { Link, Redirect } from "react-router-dom";
 import Axios from "axios";
 import Loading from "./Loading";
 
-const Dashboard = () => {
+const Dashboard = ({user}) => {
   const [userLists, setUserLists] = useState([]);
   const [othersLists, setOthersLists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +29,11 @@ const Dashboard = () => {
 
   return (
     <div className="border border-2 border-dark m-2">
-      <div className={`p-3 text-left`}>
-        <div className="h1 m-0">CoTasks</div>
+      <div className={`p-3 text-left bg-dark text-light`}>
+        <div className="h1 m-0 font-weight-bold">CoTasks</div>
+      </div>
+      <div className="p-3 border-top border-2 border-dark">
+        Welcome, {user.firstname} {user.lastname}!
       </div>
       {loading ? (
         <div className="border-top border-2 border-dark">
