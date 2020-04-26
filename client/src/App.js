@@ -51,7 +51,7 @@ const App = () => {
   ) : (
     <Router>
       <div className="container p-0">
-        <div className="col-sm-12 col-md-9 p-0">
+        <div className="col-sm-12 col-md-10 offset-md-1 p-0">
           <Switch>
             {isAuthenticated ? (
               <Fragment>

@@ -7,7 +7,6 @@ const config = require("../../../config");
 const auth = require("../../middleware/auth");
 const mongoose = require("mongoose");
 
-
 const User = require("../../models/User");
 
 // @route   GET api/users
@@ -55,7 +54,6 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
-
 // @route   POST api/users
 // @desc    Create a user
 // @access  Public
@@ -75,7 +73,8 @@ router.post(
       return res.status(400).send({ errors: errors.array() });
     }
     let user;
-    const { firstname, lastname, username, email, password } = req.body;
+    const { firstname, lastname, username, email, password, password2 } = req.body;
+    if (password !== password2) return res.status(400).json({ errors: [{ msg: "Passwords don't match", param: "password2" }] });
     try {
       // check if email or username are already used
       user = await User.findOne({ email: email });

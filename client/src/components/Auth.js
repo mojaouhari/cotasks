@@ -14,6 +14,34 @@ const Auth = ({ authenticate, isLogin }) => {
     password: "",
     password2: "",
   });
+  const initialAuthValidation = {
+    firstname: {
+      valid: null,
+      msg: "",
+    },
+    lastname: {
+      valid: null,
+      msg: "",
+    },
+    username: {
+      valid: null,
+      msg: "",
+    },
+    email: {
+      valid: null,
+      msg: "",
+    },
+    password: {
+      valid: null,
+      msg: "",
+    },
+    password2: {
+      valid: null,
+      msg: "",
+    },
+  };
+  const [authValidation, setAuthValidation] = useState(initialAuthValidation);
+
   const handleLoginChange = (e) => {
     setLogin({ ...login, [e.target.name]: e.target.value });
   };
@@ -23,24 +51,31 @@ const Auth = ({ authenticate, isLogin }) => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log(login);
       const res = await Axios.post(`/auth/`, { ...login });
-      console.log(res);
       authenticate(res.data.token);
     } catch (error) {
       authenticate();
-      console.log(error.response);
+      // update validation messages
+      let validation = {};
+      error.response.data.errors.map((error) => {
+        validation[error.param] = { valid: false, msg: error.msg };
+      });
+      setAuthValidation({ ...initialAuthValidation, ...validation });
     }
   };
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await Axios.post(`/users/`, { ...signup });
-      console.log(res);
       authenticate(res.data.token);
     } catch (error) {
       authenticate();
-      console.log(error.response);
+      // update validation messages
+      let validation = {};
+      error.response.data.errors.map((error) => {
+        validation[error.param] = { valid: false, msg: error.msg };
+      });
+      setAuthValidation({ ...initialAuthValidation, ...validation });
     }
   };
 
@@ -59,7 +94,13 @@ const Auth = ({ authenticate, isLogin }) => {
       {isLogin ? (
         <form onSubmit={(e) => handleLoginSubmit(e)}>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.email.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
@@ -73,7 +114,13 @@ const Auth = ({ authenticate, isLogin }) => {
             </div>
           </div>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.password.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
@@ -93,7 +140,13 @@ const Auth = ({ authenticate, isLogin }) => {
       ) : (
         <form onSubmit={(e) => handleSignupSubmit(e)}>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.firstname.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
@@ -107,7 +160,13 @@ const Auth = ({ authenticate, isLogin }) => {
             </div>
           </div>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.lastname.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
@@ -121,7 +180,13 @@ const Auth = ({ authenticate, isLogin }) => {
             </div>
           </div>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.username.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
@@ -135,11 +200,17 @@ const Auth = ({ authenticate, isLogin }) => {
             </div>
           </div>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.email.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
-                type="text"
+                type="email"
                 name="email"
                 placeholder="Your email address"
                 className={`border-0 h-100 w-100 text-body px-2 pt-2 pb-1 editable p-2`}
@@ -149,7 +220,13 @@ const Auth = ({ authenticate, isLogin }) => {
             </div>
           </div>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.password.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required
@@ -163,7 +240,13 @@ const Auth = ({ authenticate, isLogin }) => {
             </div>
           </div>
           <div className={`task-row d-flex flex-row border-top border-2 border-dark text-muted`}>
-            <div className={`flex-72`} />
+            <div className={`flex-72 bg-dark text-center`}>
+              {authValidation.password2.valid === false && (
+                <div className="text-danger" style={{ paddingTop: 21 }}>
+                  NO
+                </div>
+              )}
+            </div>
             <div className={`border-left border-2 border-dark flex-grow-1`}>
               <input
                 required

@@ -1,5 +1,5 @@
 body {
-  font: 24px "Work Sans";
+  font: 24px "Work Sans", sans-serif;
   cursor: default;
   overflow-y: scroll;
   user-select: none;

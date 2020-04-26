@@ -33,7 +33,7 @@ const Dashboard = ({user}) => {
         <div className="h1 m-0 font-weight-bold">CoTasks</div>
       </div>
       <div className="p-3 border-top border-2 border-dark">
-        Welcome, {user.firstname} {user.lastname}!
+      Welcome{user && `, ${user.firstname} ${user.lastname}`}!
       </div>
       {loading ? (
         <div className="border-top border-2 border-dark">
