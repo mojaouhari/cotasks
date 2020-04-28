@@ -19,13 +19,14 @@ const List = ({
   const [newTask, setNewTask] = useState({ name: "" });
   const [doneTasksVisible, setDoneTasksVisible] = useState(true);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(-1);
-  const [editableTask, setEditableTask] = useState({
+  const initalEditableTask = {
     done: null,
     name: "",
     description: "",
     date: null,
     collaborators: [],
-  });
+  };
+  const [editableTask, setEditableTask] = useState(initalEditableTask);
   const [editableTaskDate, setEditableTaskDate] = useState({
     year: "",
     month: "",
@@ -136,13 +137,21 @@ const List = ({
       } else {
         setEditableTaskDate({ year: "", month: "", day: "" });
       }
+    } else {
+      setEditableTask(initalEditableTask);
     }
   }, [selectedTaskIndex, list.tasks]);
 
   useEffect(() => {
-    const date = new Date(editableTaskDate.year, editableTaskDate.month - 1, editableTaskDate.day);
-    setEditableTask({ ...editableTask, date: date.toJSON() });
-  }, [editableTaskDate])
+    if (editableTaskDate.day || editableTaskDate.month || editableTaskDate.year) {
+      const date = new Date(editableTaskDate.year, editableTaskDate.month - 1, editableTaskDate.day);
+      setEditableTask({ ...editableTask, date: date.toJSON() });
+    }
+  }, [editableTaskDate]);
+
+  useEffect(() => {
+    console.log(editableTask);
+  }, [editableTask]);
 
   useEffect(() => {
     loadAllUsersOnce();
@@ -204,189 +213,190 @@ const List = ({
             <div className="border-left border-2 border-dark p-2 flex-72">DATE</div>
             <div className="border-left border-2 border-dark p-2 flex-72">CO.</div>
           </div>
-          {list.tasks && list.tasks.map((task, i) => (
-            <div
-              className={`task-row content-box overflow-hidden d-flex flex-row  ${i > 0 ? " border-top border-2 border-dark" : ""} ${
-                task.done ? " text-muted" : ""
-              } ${(i !== selectedTaskIndex && selectedTaskIndex !== -1) || (task.done && !doneTasksVisible) ? " collapsed" : ""} ${
-                i === selectedTaskIndex ? "expanded" : ""
-              }`}
-              key={i}>
+          {list.tasks &&
+            list.tasks.map((task, i) => (
               <div
-                className={`clickable flex-72 done-btn-${task.done ? "yes" : "no"} ${
-                  i === selectedTaskIndex ? "border-bottom border-2 border-dark task-row" : "border-0"
+                className={`task-row content-box overflow-hidden d-flex flex-row  ${i > 0 ? " border-top border-2 border-dark" : ""} ${
+                  task.done ? " text-muted" : ""
+                } ${(i !== selectedTaskIndex && selectedTaskIndex !== -1) || (task.done && !doneTasksVisible) ? " collapsed" : ""} ${
+                  i === selectedTaskIndex ? "expanded" : ""
                 }`}
-                onClick={() => toggleDone(task, i)}
-              />
-              <div
-                className={`border-left border-2 border-dark flex-grow-1 ${i === selectedTaskIndex ? "" : "editable"}`}
-                style={{ overflowX: "hidden" }}>
-                {i === selectedTaskIndex ? (
-                  <Fragment>
-                    <input
-                      type="text"
-                      ref={taskNameInput}
-                      name="name"
-                      placeholder="What is the task?"
-                      style={{ paddingTop: "0.7rem" }}
-                      className={`border-0 w-100 text-body px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}
-                      value={editableTask.name}
-                      onChange={(e) => handleChange(e)}
-                    />
-                    <textarea
-                      name="description"
-                      ref={taskDescriptionInput}
-                      value={editableTask.description}
-                      onChange={(e) => handleChange(e)}
-                      placeholder="(no description)"
-                      style={{ height: "calc( 100% - 44px )", resize: "none" }}
-                      className={`${
-                        i === selectedTaskIndex ? "p-2" : "px-2 py-1"
-                      } w-100 small-bold editable text-body border-top border-2 border-dark overflow-auto`}
-                    />
-                  </Fragment>
-                ) : (
-                  <Fragment>
-                    <div
-                      onClick={() => {
-                        setSelectedTaskIndex(i);
-                        setTimeout(() => {
-                          taskNameInput.current.focus();
-                        }, 200);
-                      }}
-                      style={{ paddingTop: "0.7rem" }}
-                      className={`text-truncate px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}>
-                      {task.name}
-                    </div>
-                    <div
-                      onClick={() => {
-                        setSelectedTaskIndex(i);
-                        setTimeout(() => {
-                          taskDescriptionInput.current.focus();
-                        }, 200);
-                      }}
-                      style={{ paddingBottom: "0.7rem" }}
-                      className={`small-bold text-truncate ${i === selectedTaskIndex ? "p-2" : "px-2 pt-1"}`}>
-                      {task.description}
-                    </div>
-                  </Fragment>
-                )}
-              </div>
-              <div className={`border-left border-2 border-dark flex-72 small-bold`} onClick={() => setSelectedTaskIndex(i)}>
-                <div className={`editable ${i === selectedTaskIndex ? "border-bottom border-2 border-dark" : "p-2 task-row"}`}>
+                key={i}>
+                <div
+                  className={`clickable flex-72 done-btn-${task.done ? "yes" : "no"} ${
+                    i === selectedTaskIndex ? "border-bottom border-2 border-dark task-row" : "border-0"
+                  }`}
+                  onClick={() => toggleDone(task, i)}
+                />
+                <div
+                  className={`border-left border-2 border-dark flex-grow-1 ${i === selectedTaskIndex ? "" : "editable"}`}
+                  style={{ overflow: "hidden" }}>
                   {i === selectedTaskIndex ? (
-                    <>
-                      <div>
-                        <input
-                          type="number"
-                          placeholder="Year"
-                          min="1970"
-                          max="3000"
-                          className="w-100 px-1 py-2 font-weight-bold text-body"
-                          name="year"
-                          value={editableTaskDate.year}
-                          onChange={(e) => handleDateChange(e)}
-                        />
-                      </div>
-                      <div className="border-top border-2 border-dark">
-                        <input
-                          type="number"
-                          placeholder="Month"
-                          min="1"
-                          max="12"
-                          className="w-100 px-1 py-2 font-weight-bold text-body"
-                          name="month"
-                          value={editableTaskDate.month}
-                          onChange={(e) => handleDateChange(e)}
-                        />
-                      </div>
-                      <div className="border-top border-2 border-dark">
-                        <input
-                          type="number"
-                          placeholder="Day"
-                          min="1"
-                          max="31"
-                          className="w-100 px-1 py-2 font-weight-bold text-body"
-                          name="day"
-                          value={editableTaskDate.day}
-                          onChange={(e) => handleDateChange(e)}
-                        />
-                      </div>
-                    </>
-                  ) : task.date !== undefined ? (
-                    formatDate(task.date)
+                    <Fragment>
+                      <input
+                        type="text"
+                        ref={taskNameInput}
+                        name="name"
+                        placeholder="What is the task?"
+                        style={{ paddingTop: "0.7rem" }}
+                        className={`border-0 w-100 text-body px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}
+                        value={editableTask.name}
+                        onChange={(e) => handleChange(e)}
+                      />
+                      <textarea
+                        name="description"
+                        ref={taskDescriptionInput}
+                        value={editableTask.description}
+                        onChange={(e) => handleChange(e)}
+                        placeholder="(no description)"
+                        style={{ height: "calc( 100% - 48px )", resize: "none" }}
+                        className={`${
+                          i === selectedTaskIndex ? "p-2" : "px-2 py-1"
+                        } w-100 small-bold editable text-body border-top border-2 border-dark overflow-auto`}
+                      />
+                    </Fragment>
                   ) : (
-                    "-"
+                    <Fragment>
+                      <div
+                        onClick={() => {
+                          setSelectedTaskIndex(i);
+                          setTimeout(() => {
+                            taskNameInput.current.focus();
+                          }, 200);
+                        }}
+                        style={{ paddingTop: "0.7rem" }}
+                        className={`text-truncate px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}>
+                        {task.name}
+                      </div>
+                      <div
+                        onClick={() => {
+                          setSelectedTaskIndex(i);
+                          setTimeout(() => {
+                            taskDescriptionInput.current.focus();
+                          }, 200);
+                        }}
+                        style={{ paddingBottom: "0.7rem" }}
+                        className={`small-bold text-truncate ${i === selectedTaskIndex ? "p-2" : "px-2 pt-1"}`}>
+                        {task.description}
+                      </div>
+                    </Fragment>
                   )}
                 </div>
-                {/* TODO amount of time left */}
-              </div>
-              <div
-                onClick={() => setSelectedTaskIndex(i)}
-                className={`border-left border-2 border-dark flex-72 ${i === selectedTaskIndex ? "" : "editable"}`}>
-                <div className="d-flex flex-wrap align-items-start">
-                  {i === selectedTaskIndex && (
-                    <div className="border-bottom border-2 border-dark ">
-                      <Autocomplete
-                        placeholder="Add..."
-                        suggestions={[...allUsers]}
-                        name="collaborators"
-                        value={collaboratorSearchField}
-                        relevantAttributeNames={["firstname", "lastname", "email"]}
-                        className="editable small-bold text-body w-100 h-100 d-block px-1 py-2"
-                        onChange={(e) => setCollaboratorSearchField(e.target.value)}
-                        onSelect={(e) => handleAddCollaborator(e)}
-                        SuggestionsList={({ filteredSuggestions, activeSuggestion, onClick }) =>
-                          filteredSuggestions.length ? (
-                            <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark bg-white">
-                              {filteredSuggestions.map((suggestion, i) => (
-                                <li
-                                  className={`p-1 clickable text-left ${i > 0 ? "border-top border-2 border-dark" : ""}`}
-                                  key={i}
-                                  onClick={(e) => onClick(e, suggestion)}>
-                                  <div className={`text-white px-2 pt-2 bg-dark ${i === activeSuggestion ? "text-underlined" : ""}`}>
-                                    {suggestion.firstname} {suggestion.lastname}
-                                  </div>
-                                  <div className="text-secondary px-2 pb-2 bg-dark">{suggestion.email}</div>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark">
-                              <div className="py-2 px-3 bg-dark text-secondary font-italic">No results found</div>
-                            </ul>
-                          )
+                <div className={`border-left border-2 border-dark flex-72 small-bold`} onClick={() => setSelectedTaskIndex(i)}>
+                  <div className={`editable ${i === selectedTaskIndex ? "border-bottom border-2 border-dark" : "p-2 task-row"}`}>
+                    {i === selectedTaskIndex ? (
+                      <>
+                        <div>
+                          <input
+                            type="number"
+                            placeholder="Year"
+                            min="1970"
+                            max="3000"
+                            className="w-100 px-1 py-2 font-weight-bold text-body"
+                            name="year"
+                            value={editableTaskDate.year}
+                            onChange={(e) => handleDateChange(e)}
+                          />
+                        </div>
+                        <div className="border-top border-2 border-dark">
+                          <input
+                            type="number"
+                            placeholder="Month"
+                            min="1"
+                            max="12"
+                            className="w-100 px-1 py-2 font-weight-bold text-body"
+                            name="month"
+                            value={editableTaskDate.month}
+                            onChange={(e) => handleDateChange(e)}
+                          />
+                        </div>
+                        <div className="border-top border-2 border-dark">
+                          <input
+                            type="number"
+                            placeholder="Day"
+                            min="1"
+                            max="31"
+                            className="w-100 px-1 py-2 font-weight-bold text-body"
+                            name="day"
+                            value={editableTaskDate.day}
+                            onChange={(e) => handleDateChange(e)}
+                          />
+                        </div>
+                      </>
+                    ) : task.date !== undefined ? (
+                      formatDate(task.date)
+                    ) : (
+                      "-"
+                    )}
+                  </div>
+                  {/* TODO amount of time left */}
+                </div>
+                <div
+                  onClick={() => setSelectedTaskIndex(i)}
+                  className={`border-left border-2 border-dark flex-72 ${i === selectedTaskIndex ? "" : "editable"}`}>
+                  <div className="d-flex flex-wrap align-items-start">
+                    {i === selectedTaskIndex && (
+                      <div className="border-bottom border-2 border-dark ">
+                        <Autocomplete
+                          placeholder="Add..."
+                          suggestions={[...allUsers]}
+                          name="collaborators"
+                          value={collaboratorSearchField}
+                          relevantAttributeNames={["firstname", "lastname", "email"]}
+                          className="editable small-bold text-body w-100 h-100 d-block px-1 py-2"
+                          onChange={(e) => setCollaboratorSearchField(e.target.value)}
+                          onSelect={(e) => handleAddCollaborator(e)}
+                          SuggestionsList={({ filteredSuggestions, activeSuggestion, onClick }) =>
+                            filteredSuggestions.length ? (
+                              <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark bg-white">
+                                {filteredSuggestions.map((suggestion, i) => (
+                                  <li
+                                    className={`p-1 clickable text-left ${i > 0 ? "border-top border-2 border-dark" : ""}`}
+                                    key={i}
+                                    onClick={(e) => onClick(e, suggestion)}>
+                                    <div className={`text-white px-2 pt-2 bg-dark ${i === activeSuggestion ? "text-underlined" : ""}`}>
+                                      {suggestion.firstname} {suggestion.lastname}
+                                    </div>
+                                    <div className="text-secondary px-2 pb-2 bg-dark">{suggestion.email}</div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark">
+                                <div className="py-2 px-3 bg-dark text-secondary font-italic">No results found</div>
+                              </ul>
+                            )
+                          }
+                        />
+                      </div>
+                    )}
+                    {(i === selectedTaskIndex ? editableTask : task).collaborators.map((collaborator, j) => (
+                      <div
+                        key={j}
+                        onMouseOver={(e) => loadAllUsersOnce() && setTooltipUserID(collaborator._id)}
+                        onMouseLeave={(e) =>
+                          setTimeout(() => {
+                            setTooltipUserID("");
+                          }, 50)
                         }
-                      />
-                    </div>
-                  )}
-                  {(i === selectedTaskIndex ? editableTask : task).collaborators.map((collaborator, j) => (
-                    <div
-                      key={j}
-                      onMouseOver={(e) => loadAllUsersOnce() && setTooltipUserID(collaborator._id)}
-                      onMouseLeave={(e) =>
-                        setTimeout(() => {
-                          setTooltipUserID("");
-                        }, 50)
-                      }
-                      style={{ height: 33, width: 32, marginTop: 2, marginLeft: 2, marginRight: j % 2 !== 0 ? 2 : 0 }}
-                      className={`small-bold text-center py-2 text-white bg-dark position-relative`}>
-                      {collaborator.firstname.substring(0, 1)}
-                      {collaborator.lastname.substring(0, 1)}
-                      <UserTooltip
-                        index={j}
-                        visible={collaborator._id === tooltipUserID}
-                        userID={collaborator._id}
-                        allUsers={allUsers}
-                        showRemove={i === selectedTaskIndex}
-                        onRemoveClick={(e) => handleRemoveCollaborator(e, j)}
-                      />
-                    </div>
-                  ))}
+                        style={{ height: 33, width: 32, marginTop: 2, marginLeft: 2, marginRight: j % 2 !== 0 ? 2 : 0 }}
+                        className={`small-bold text-center py-2 text-white bg-dark position-relative`}>
+                        {collaborator.firstname.substring(0, 1)}
+                        {collaborator.lastname.substring(0, 1)}
+                        <UserTooltip
+                          index={j}
+                          visible={collaborator._id === tooltipUserID}
+                          userID={collaborator._id}
+                          allUsers={allUsers}
+                          showRemove={i === selectedTaskIndex}
+                          onRemoveClick={(e) => handleRemoveCollaborator(e, j)}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
           {selectedTaskIndex === -1 && (
             <div className="task-row d-flex flex-row border-top border-2 border-dark">
               <div className={`clickable w-100 px-3 ${addTaskFormVisible ? "flex-72" : "text-left"}`} onClick={() => toggleAddTaskForm()}>
