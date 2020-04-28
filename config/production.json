@@ -1,0 +1,4 @@
+{
+    "mongoURI": "mongodb+srv://jaouhari:12345@cluster0-pvpr9.mongodb.net/cotasks?retryWrites=true&w=majority",
+    "jwtSecret": "somethingcreative"
+}

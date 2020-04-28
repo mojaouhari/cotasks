@@ -44,7 +44,7 @@ const List = ({
 
   // load the list from server
   const loadList = async (id) => {
-    const res = await Axios.get(`/lists/${id}`);
+    const res = await Axios.get(`/api/lists/${id}`);
     setList(res.data);
     setLoading(false);
   };
@@ -52,7 +52,7 @@ const List = ({
   // update task status (done || not done) to server
   const toggleDone = async (task, i) => {
     task.done = !task.done;
-    const res = await Axios.post(`/lists/${id}/${i}`, { task: task });
+    const res = await Axios.post(`/api/lists/${id}/${i}`, { task: task });
     updateView();
     // TODO add trycatch to show a toast notification
   };
@@ -68,7 +68,7 @@ const List = ({
   // submit the new task to be added
   const addTaskFormSubmit = async (e) => {
     e.preventDefault();
-    const res = await Axios.post(`/lists/${id}/add`, { task: newTask });
+    const res = await Axios.post(`/api/lists/${id}/add`, { task: newTask });
     // reset the form
     toggleAddTaskForm();
     setNewTask({ name: "" });
@@ -100,16 +100,16 @@ const List = ({
   };
 
   const updateTaskFormSubmit = async (e) => {
-    const res = await Axios.post(`/lists/${id}/${selectedTaskIndex}`, { task: editableTask });
+    const res = await Axios.post(`/api/lists/${id}/${selectedTaskIndex}`, { task: editableTask });
     updateView();
   };
 
   const renameList = async () => {
-    if (list.name !== listName) await Axios.post(`/lists/${id}/rename`, { name: listName });
+    if (list.name !== listName) await Axios.post(`/api/lists/${id}/rename`, { name: listName });
   };
 
   const loadAllUsers = async () => {
-    const res = await Axios.get("/users");
+    const res = await Axios.get("/api/users");
     setAllUsers(res.data);
   };
 
@@ -204,7 +204,7 @@ const List = ({
             <div className="border-left border-2 border-dark p-2 flex-72">DATE</div>
             <div className="border-left border-2 border-dark p-2 flex-72">CO.</div>
           </div>
-          {list.tasks.map((task, i) => (
+          {list.tasks && list.tasks.map((task, i) => (
             <div
               className={`task-row content-box overflow-hidden d-flex flex-row  ${i > 0 ? " border-top border-2 border-dark" : ""} ${
                 task.done ? " text-muted" : ""

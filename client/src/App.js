@@ -14,7 +14,7 @@ if (localStorage.token) {
 }
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const authenticate = (token) => {
@@ -32,18 +32,23 @@ const App = () => {
 
   const loadUser = async () => {
     try {
-      const res = await Axios.get("/auth/");
+      const res = await Axios.get("/api/auth/");
       setUser(res.data);
       setIsAuthenticated(true);
-      setLoading(false);
     } catch (error) {
       setIsAuthenticated(false);
-      setLoading(false);
     }
   };
 
+  const initialize = async () => {
+    if (localStorage.token) {
+      await loadUser();
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    loadUser();
+    initialize();
   }, []);
 
   return loading ? (
@@ -53,7 +58,7 @@ const App = () => {
       <div className="container p-0">
         <div className="col-sm-12 col-md-10 offset-md-1 p-0">
           <Switch>
-            {isAuthenticated ? (
+            {isAuthenticated === true ? (
               <Fragment>
                 <Route exact path="/">
                   <Dashboard user={user} />

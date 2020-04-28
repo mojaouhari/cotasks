@@ -10,14 +10,14 @@ const Dashboard = ({user}) => {
   const [openListId, setOpenListId] = useState(null);
 
   const loadLists = async () => {
-    const res = await Axios.get("/lists/");
+    const res = await Axios.get("/api/lists/");
     setUserLists(res.data.userLists);
     setOthersLists(res.data.othersLists);
     setLoading(false);
   };
 
   const createList = async () => {
-    const res = await Axios.post("/lists/", { name: "<NEW LIST>" });
+    const res = await Axios.post("/api/lists/", { name: "<NEW LIST>" });
     setOpenListId(res.data._id);
   };
 

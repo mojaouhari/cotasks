@@ -51,30 +51,34 @@ const Auth = ({ authenticate, isLogin }) => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await Axios.post(`/auth/`, { ...login });
+      const res = await Axios.post(`/api/auth/`, { ...login });
       authenticate(res.data.token);
     } catch (error) {
       authenticate();
       // update validation messages
       let validation = {};
-      error.response.data.errors.map((error) => {
-        validation[error.param] = { valid: false, msg: error.msg };
-      });
+      const errors = error.response.data.errors;
+      if (errors)
+        errors.map((error) => {
+          validation[error.param] = { valid: false, msg: error.msg };
+        });
       setAuthValidation({ ...initialAuthValidation, ...validation });
     }
   };
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await Axios.post(`/users/`, { ...signup });
+      const res = await Axios.post(`/api/users/`, { ...signup });
       authenticate(res.data.token);
     } catch (error) {
       authenticate();
       // update validation messages
       let validation = {};
-      error.response.data.errors.map((error) => {
-        validation[error.param] = { valid: false, msg: error.msg };
-      });
+      const errors = error.response.data.errors;
+      if (errors)
+        errors.map((error) => {
+          validation[error.param] = { valid: false, msg: error.msg };
+        });
       setAuthValidation({ ...initialAuthValidation, ...validation });
     }
   };
