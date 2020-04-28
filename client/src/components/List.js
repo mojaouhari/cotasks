@@ -19,7 +19,19 @@ const List = ({
   const [newTask, setNewTask] = useState({ name: "" });
   const [doneTasksVisible, setDoneTasksVisible] = useState(true);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(-1);
-  const [editableTasks, setEditableTasks] = useState(null);
+  const [editableTask, setEditableTask] = useState({
+    done: null,
+    name: "",
+    description: "",
+    date: null,
+    collaborators: [],
+  });
+  const [editableTaskDate, setEditableTaskDate] = useState({
+    year: "",
+    month: "",
+    day: "",
+    // time: "--:--",
+  });
   const [listName, setListName] = useState("");
   const [collaboratorSearchField, setCollaboratorSearchField] = useState("");
   const [allUsers, setAllUsers] = useState([]);
@@ -64,40 +76,31 @@ const List = ({
   };
 
   // update task form data
-  const handleChange = (e, i) => {
-    let updatedTasks = [...editableTasks];
-    let updatedTask;
-    updatedTask = { ...updatedTasks[i], [e.target.name]: e.target.value };
-    updatedTasks[i] = updatedTask;
-    setEditableTasks(updatedTasks);
+  const handleChange = (e) => {
+    const updatedTask = { ...editableTask, [e.target.name]: e.target.value };
+    setEditableTask(updatedTask);
   };
-  const handleAddCollaborator = (e, i) => {
+  const handleAddCollaborator = (e) => {
     // checking for duplicates
-    if (editableTasks[i].collaborators.some((collaborator) => collaborator._id !== e.target.value._id)) {
+    if (editableTask.collaborators.some((collaborator) => collaborator._id !== e.target.value._id)) {
       // TODO show toast alert that you're adding a duplicate
     } else {
-      let updatedTasks = [...editableTasks];
-      let updatedTask;
-      updatedTask = { ...updatedTasks[i], collaborators: [...updatedTasks[i].collaborators, e.target.value] };
-      updatedTasks[i] = updatedTask;
-      setEditableTasks(updatedTasks);
+      const updatedTask = { ...editableTask, collaborators: [...editableTask.collaborators, e.target.value] };
+      setEditableTask(updatedTask);
     }
   };
-  const handleRemoveCollaborator = (e, i, j) => {
-    let updatedTasks = [...editableTasks];
-    let updatedTask, updatedCollaborators;
-    updatedCollaborators = updatedTasks[i].collaborators;
+  const handleRemoveCollaborator = (e, j) => {
+    let updatedCollaborators = editableTask.collaborators;
     updatedCollaborators.splice(j, 1);
-    updatedTask = { ...updatedTasks[i], collaborators: updatedCollaborators };
-    updatedTasks[i] = updatedTask;
-    console.log(updatedTasks);
-    setEditableTasks(updatedTasks);
+    const updatedTask = { ...editableTask, collaborators: updatedCollaborators };
+    setEditableTask(updatedTask);
+  };
+  const handleDateChange = (e) => {
+    setEditableTaskDate({ ...editableTaskDate, [e.target.name]: e.target.value });
   };
 
   const updateTaskFormSubmit = async (e) => {
-    console.log("OOOOP");
-    
-    const res = await Axios.post(`/lists/${id}/${selectedTaskIndex}`, { task: editableTasks[selectedTaskIndex] });
+    const res = await Axios.post(`/lists/${id}/${selectedTaskIndex}`, { task: editableTask });
     updateView();
   };
 
@@ -125,16 +128,25 @@ const List = ({
   }, [list.name]);
 
   useEffect(() => {
-    setEditableTasks(list.tasks);
-  }, [list.tasks, selectedTaskIndex]);
+    if (selectedTaskIndex > -1) {
+      setEditableTask({ ...list.tasks[selectedTaskIndex] });
+      if (list.tasks[selectedTaskIndex].date) {
+        const date = new Date(list.tasks[selectedTaskIndex].date);
+        setEditableTaskDate({ year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() });
+      } else {
+        setEditableTaskDate({ year: "", month: "", day: "" });
+      }
+    }
+  }, [selectedTaskIndex, list.tasks]);
+
+  useEffect(() => {
+    const date = new Date(editableTaskDate.year, editableTaskDate.month - 1, editableTaskDate.day);
+    setEditableTask({ ...editableTask, date: date.toJSON() });
+  }, [editableTaskDate])
 
   useEffect(() => {
     loadAllUsersOnce();
   }, [collaboratorSearchField, tooltipUserID]);
-
-  useEffect(() => {
-    // console.log(selectedTask);
-  }, [selectedTaskIndex]);
 
   return (
     <Fragment>
@@ -150,7 +162,7 @@ const List = ({
               }}>
               <div className="small-bold">
                 {selectedTaskIndex > -1 && "RETURN TO "}LIST
-                {editableTasks[selectedTaskIndex] !== list.tasks[selectedTaskIndex] && " WHITHOUT SAVING"}
+                {selectedTaskIndex > -1 && editableTask !== list.tasks[selectedTaskIndex] && " WHITHOUT SAVING"}
               </div>
               {selectedTaskIndex > -1 ? (
                 <div style={{ padding: "1px 0" }}>{list.name}</div>
@@ -168,10 +180,10 @@ const List = ({
             {selectedTaskIndex > -1 ? (
               <div
                 className="border-left border-2 border-dark flex-72"
-                onClick={(e) => editableTasks[selectedTaskIndex] !== list.tasks[selectedTaskIndex] && updateTaskFormSubmit(e)}>
+                onClick={(e) => editableTask !== list.tasks[selectedTaskIndex] && updateTaskFormSubmit(e)}>
                 <div
                   className={`p-2 h-100 small-bold d-flex align-items-center justify-content-center ${
-                    editableTasks[selectedTaskIndex] !== list.tasks[selectedTaskIndex] ? "clickable" : "text-muted"
+                    editableTask !== list.tasks[selectedTaskIndex] ? "clickable" : "text-muted"
                   }`}>
                   SAVE
                 </div>
@@ -218,14 +230,14 @@ const List = ({
                       placeholder="What is the task?"
                       style={{ paddingTop: "0.7rem" }}
                       className={`border-0 w-100 text-body px-2 ${i === selectedTaskIndex ? "editable pb-2" : ""}`}
-                      value={editableTasks[i].name}
-                      onChange={(e) => handleChange(e, i)}
+                      value={editableTask.name}
+                      onChange={(e) => handleChange(e)}
                     />
                     <textarea
                       name="description"
                       ref={taskDescriptionInput}
-                      value={editableTasks[i].description}
-                      onChange={(e) => handleChange(e, i)}
+                      value={editableTask.description}
+                      onChange={(e) => handleChange(e)}
                       placeholder="(no description)"
                       style={{ height: "calc( 100% - 44px )", resize: "none" }}
                       className={`${
@@ -261,8 +273,51 @@ const List = ({
                 )}
               </div>
               <div className={`border-left border-2 border-dark flex-72 small-bold`} onClick={() => setSelectedTaskIndex(i)}>
-                <div className={`p-2 editable task-row ${i === selectedTaskIndex ? "border-bottom border-2 border-dark" : ""}`}>
-                  {task.date !== undefined ? formatDate(task.date) : "-"}
+                <div className={`editable ${i === selectedTaskIndex ? "border-bottom border-2 border-dark" : "p-2 task-row"}`}>
+                  {i === selectedTaskIndex ? (
+                    <>
+                      <div>
+                        <input
+                          type="number"
+                          placeholder="Year"
+                          min="1970"
+                          max="3000"
+                          className="w-100 px-1 py-2 font-weight-bold text-body"
+                          name="year"
+                          value={editableTaskDate.year}
+                          onChange={(e) => handleDateChange(e)}
+                        />
+                      </div>
+                      <div className="border-top border-2 border-dark">
+                        <input
+                          type="number"
+                          placeholder="Month"
+                          min="1"
+                          max="12"
+                          className="w-100 px-1 py-2 font-weight-bold text-body"
+                          name="month"
+                          value={editableTaskDate.month}
+                          onChange={(e) => handleDateChange(e)}
+                        />
+                      </div>
+                      <div className="border-top border-2 border-dark">
+                        <input
+                          type="number"
+                          placeholder="Day"
+                          min="1"
+                          max="31"
+                          className="w-100 px-1 py-2 font-weight-bold text-body"
+                          name="day"
+                          value={editableTaskDate.day}
+                          onChange={(e) => handleDateChange(e)}
+                        />
+                      </div>
+                    </>
+                  ) : task.date !== undefined ? (
+                    formatDate(task.date)
+                  ) : (
+                    "-"
+                  )}
                 </div>
                 {/* TODO amount of time left */}
               </div>
@@ -280,7 +335,7 @@ const List = ({
                         relevantAttributeNames={["firstname", "lastname", "email"]}
                         className="editable small-bold text-body w-100 h-100 d-block px-1 py-2"
                         onChange={(e) => setCollaboratorSearchField(e.target.value)}
-                        onSelect={(e) => handleAddCollaborator(e, i)}
+                        onSelect={(e) => handleAddCollaborator(e)}
                         SuggestionsList={({ filteredSuggestions, activeSuggestion, onClick }) =>
                           filteredSuggestions.length ? (
                             <ul className="suggestions small-bold border-top border-bottom border-left border-2 border-dark bg-white">
@@ -305,7 +360,7 @@ const List = ({
                       />
                     </div>
                   )}
-                  {(i === selectedTaskIndex ? editableTasks[i] : task).collaborators.map((collaborator, j) => (
+                  {(i === selectedTaskIndex ? editableTask : task).collaborators.map((collaborator, j) => (
                     <div
                       key={j}
                       onMouseOver={(e) => loadAllUsersOnce() && setTooltipUserID(collaborator._id)}
@@ -324,7 +379,7 @@ const List = ({
                         userID={collaborator._id}
                         allUsers={allUsers}
                         showRemove={i === selectedTaskIndex}
-                        onRemoveClick={(e) => handleRemoveCollaborator(e, i, j)}
+                        onRemoveClick={(e) => handleRemoveCollaborator(e, j)}
                       />
                     </div>
                   ))}
