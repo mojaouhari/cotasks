@@ -61,12 +61,13 @@ const App = () => {
             {isAuthenticated === true ? (
               <Fragment>
                 <Route exact path="/">
-                  <Dashboard user={user} />
+                  <Dashboard authenticate={authenticate} user={user} />
                 </Route>
                 <Route exact path="/list/:id" component={List} />
                 <Route exact path="/(login|signup)">
                   <Redirect to="/" />
                 </Route>
+                <Redirect to="/" />
               </Fragment>
             ) : (
               <Fragment>
@@ -77,6 +78,7 @@ const App = () => {
                 <Route exact path="/signup">
                   <Auth authenticate={authenticate} isLogin={false} />
                 </Route>
+                <Redirect to="/" />
               </Fragment>
             )}
           </Switch>

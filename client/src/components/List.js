@@ -150,10 +150,6 @@ const List = ({
   }, [editableTaskDate]);
 
   useEffect(() => {
-    console.log(editableTask);
-  }, [editableTask]);
-
-  useEffect(() => {
     loadAllUsersOnce();
   }, [collaboratorSearchField, tooltipUserID]);
 
