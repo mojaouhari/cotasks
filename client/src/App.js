@@ -63,7 +63,7 @@ const App = () => {
                 <Route exact path="/">
                   <Dashboard authenticate={authenticate} user={user} />
                 </Route>
-                <Route exact path="/list/:id" component={List} />
+                <Route exact path="/list/:id" component={({ match }) => <List match={match} user={user} />} />
                 <Route exact path="/(login|signup)">
                   <Redirect to="/" />
                 </Route>
